@@ -11,25 +11,29 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
+
 
 model Item {
   id      String   @id @default(uuid())
   name    String
   price   Int
   image   String[]
-  Order   Order?   @relation(fields: [orderId], references: [id])
-  orderId String?
+  Order   Order    @relation(fields: [orderId], references: [id])
+  orderId String
+  Cart    Cart     @relation(fields: [cartId], references: [id])
+  cartId  String
 }
 
 model Order {
-  id     String  @id @default(cuid())
-  user   User?   @relation(fields: [userId], references: [id])
-  userId String?
-  item   Item[]
-  status OrderStatus
-  trackingNumber String?
-  cost   Int
+  id             String      @id @default(cuid())
+  user           User        @relation(fields: [userId], references: [id])
+  userId         String
+  item           Item[]
+  status         OrderStatus
+  trackingNumber String
+  cost           Int
 }
 
 enum OrderStatus {
@@ -39,12 +43,32 @@ enum OrderStatus {
   Completed
 }
 
-model User {
-  id       String  @id @default(uuid())
-  orders   Order[]
-  email    String  @unique
-  password String
-  name     String
-  username String
+model Cart {
+  id   String   @id @default(uuid())
+  item Item[]
+  user UserCart?
 }
 
+model UserCart {
+  id     String @id @default(uuid())
+  userId String @unique
+  cartId String @unique
+  cart   Cart @relation(fields: [cartId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model User {
+  id       String  @id 
+  role     UserRole
+  orders   Order[]
+  email    String   @unique
+  name     String
+  username String
+  cart     UserCart?
+}
+
+enum UserRole {
+  Admin
+  Staff
+  Customer
+}
