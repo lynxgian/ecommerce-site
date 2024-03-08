@@ -1,10 +1,43 @@
-import { useUser } from "@auth0/nextjs-auth0/client";
-export default function Home(props) {
-  const {user} = useUser()
+import Footer from "@/components/footer";
+import Items from "@/components/items";
+import Testimonials from "@/components/testimonials";
+import { prisma } from "@/lib/services";
+import { InferGetServerSidePropsType } from "next";
+
+
+
+export const getServerSideProps = async () => {
+  const items = await prisma.item.findMany({
+    select: {
+      id: true,
+      name: true,
+      price: true,
+      image: true,
+      orderId: true,
+      cartId: true,
+    }
+  })
+  const testimonials = await prisma.testimonials.findMany({
+    select: {
+      name: true,
+       message: true, 
+       avatar: true, 
+       profession: true, 
+       keyMessage: true
+    }
+  })
+  return {
+    props: {
+      items: items,
+      testimonials
+    }
+  }
+}
+export default function Home({items, testimonials}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   return (
       <>
-        <a href="/api/auth/login">{user?.nickname ? `${user.sub} (${user.sub?.split('|')[1]})` : 'Not Logged In' }</a>
-        <a href="/api/auth/logout">{user ? 'Sign Out' : ''}</a>
+      <Items items={items} />
+      <Testimonials testimonials={testimonials} />
       </>
   );
 }

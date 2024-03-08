@@ -28,8 +28,20 @@ export const middleware = withMiddlewareAuthRequired({
             }
 
         }
+        if(req.nextUrl.pathname.startsWith('/items')) {
+            console.log(req.nextUrl.pathname.split('/'))
+            const item = await prisma.user.findUnique({
+                where: {
+                    id: req.nextUrl.pathname.split('/')[1]
+                }
+            })
+
+            if(!item) {
+                req.nextUrl.pathname = '/404'
+                return NextResponse.redirect(req.nextUrl)
+            }
+        }
         if(req.nextUrl.pathname.startsWith('/user')) {
-            
             const user = await prisma.user.findFirst({
                 where: {
                     id: req.nextUrl.pathname.split('/')[2]
